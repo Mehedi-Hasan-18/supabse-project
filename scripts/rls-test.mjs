@@ -8,10 +8,15 @@
  * would have — so a PASS here means the RLS policies genuinely hold.
  *
  * Required environment (read at run time, never stored in the repo):
- *   SUPABASE_URL              https://<ref>.supabase.co
- *   SUPABASE_ANON_KEY         the public publishable/anon key
+ *   SUPABASE_URL              https://<ref>.supabase.co   (falls back to VITE_SUPABASE_URL)
+ *   SUPABASE_ANON_KEY         the public publishable/anon key (falls back to
+ *                             VITE_SUPABASE_ANON_KEY)
  *   SUPABASE_SERVICE_ROLE_KEY service_role key — ONLY used to provision the two
  *                             throwaway test users, never for the checks
+ *
+ * Handy shortcut: the URL and anon key already live in `.env.local`, so just add
+ * `SUPABASE_SERVICE_ROLE_KEY=...` there and run:
+ *   node --env-file=.env.local scripts/rls-test.mjs
  *
  * Optional (defaults shown):
  *   TEST_A_EMAIL=test-a@example.com   TEST_A_PASSWORD=password-a
@@ -22,8 +27,8 @@
  */
 import { createClient } from '@supabase/supabase-js'
 
-const url = process.env.SUPABASE_URL
-const anonKey = process.env.SUPABASE_ANON_KEY
+const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
+const anonKey = process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const A_EMAIL = process.env.TEST_A_EMAIL ?? 'test-a@example.com'

@@ -149,7 +149,7 @@ Details that matter:
 ## How I tested it with two different users
 
 Method 1 was performed against a live Supabase project with two real Google
-accounts; Method 2 is a script that reproduces the same checks automatically.
+accounts, and Method 2 was run against the same project; both are recorded below.
 
 ### Method 1 — two real Google accounts (manual)
 
@@ -191,6 +191,19 @@ Observed:
 cross-user behaviour. It talks to Supabase with the **public anon key and real user
 sessions**, so a pass means the policies genuinely hold — not just the UI.
 
+The URL and anon key are already in `.env.local`; just add the `service_role` key
+there too (it stays gitignored and is only used to create the two test users):
+
+```bash
+# append once to .env.local
+echo 'SUPABASE_SERVICE_ROLE_KEY=<service_role key>' >> .env.local
+
+# then run the checks
+node --env-file=.env.local scripts/rls-test.mjs
+```
+
+Or pass everything inline:
+
 ```bash
 SUPABASE_URL=https://<ref>.supabase.co \
 SUPABASE_ANON_KEY=<publishable key> \
@@ -198,16 +211,21 @@ SUPABASE_SERVICE_ROLE_KEY=<service_role key, run-time only> \
 npm run test:rls
 ```
 
-Expected output:
+> The project's **Email** auth provider must be enabled (it is by default) because
+> the script signs the two test users in with email + password. Google stays the
+> app's real login method.
+
+Actual output (run 2026-10-17 against the live project; project ref masked for this
+public repo, everything else is verbatim):
 
 ```
-Provisioning test users against https://<ref>.supabase.co
+Provisioning test users against https://<project-ref>.supabase.co
 
-User A: test-a@example.com (<uuid A>)
-User B: test-b@example.com (<uuid B>)
+User A: test-a@example.com (fc92d1df-2112-422e-8814-5547dde81b54)
+User B: test-b@example.com (0f0519f2-8f07-4b06-a512-826250e0b8c8)
 
 Checks
-  [PASS] A can insert a note — id=<uuid>
+  [PASS] A can insert a note — id=ceb09499-4224-48f0-8043-a233d371f1a3
   [PASS] B select(*) returns none of A's rows — 0 row(s) visible to B
   [PASS] B cannot read A's row by id — 0 row(s) returned
   [PASS] B cannot update A's row — 0 row(s) changed
